@@ -15,11 +15,11 @@ namespace MaxovCQRS.Common.Dispatcher
             if (cmd == null)
                 throw new ArgumentNullException(nameof(cmd), "Команда не передана");
 
-            await Before(cmd, ctx, cancellationToken);
+            await Before<TCommand>(cmd, ctx, cancellationToken);
 
-            await Proceed(cmd, ctx, cancellationToken);
+            await Proceed<TCommand>(cmd, ctx, cancellationToken);
 
-            await After(cmd, ctx, cancellationToken);
+            await After<TCommand>(cmd, ctx, cancellationToken);
         }
 
         public async Task<TResult> ExecuteQuery<TQuery, TResult>(TQuery query, ICqrsContext ctx,
@@ -28,12 +28,9 @@ namespace MaxovCQRS.Common.Dispatcher
             if (query == null)
                 throw new ArgumentNullException(nameof(query), "Запрос не передан");
 
-            var handler = GetHandler<TQuery, TResult>(query);
+            var result = await Proceed<TQuery, TResult>(query, ctx, cancellationToken);
 
-            if (handler == null)
-                throw new NotImplementedException($"Не определен обработчик для запроса {query.GetType()}");
-
-            return await handler.Execute(query, ctx, cancellationToken);
+            return result;
         }
 
         protected abstract IEnumerable<IBeforeCommandHandler<TCommand>> GetBeforeHandlers<TCommand>(TCommand cmd) where TCommand : class, ICommand;
@@ -80,10 +77,22 @@ namespace MaxovCQRS.Common.Dispatcher
 
                 Task.WaitAll(tasks.ToArray());
             }
+
+            await Task.CompletedTask;
         }
 
+        //protected abstract IEnumerable<IBeforeQueryHandler<TQuery, TResult>> GetBeforeHandlers<TQuery, TResult>(TQuery query) where TQuery : class, IQuery<TResult>;
         protected abstract IQueryHandler<TQuery, TResult> GetHandler<TQuery, TResult>(TQuery query) where TQuery : class, IQuery<TResult>;
+        //protected abstract IEnumerable<IAfterQueryHandler<TQuery, TResult>> GetAfterHandlers<TQuery, TResult>(TQuery query) where TQuery : class, IQuery<TResult>;
 
+        protected virtual async Task<TResult> Proceed<TQuery, TResult>(TQuery query, ICqrsContext ctx, CancellationToken cancellationToken) where TQuery : class, IQuery<TResult>
+        {
+            var handler = GetHandler<TQuery, TResult>(query);
 
+            if (handler == null)
+                throw new NotImplementedException($"Не определен обработчик для запроса {query.GetType()}");
+
+            return await handler.Execute(query, ctx, cancellationToken);
+        }
     }
 }

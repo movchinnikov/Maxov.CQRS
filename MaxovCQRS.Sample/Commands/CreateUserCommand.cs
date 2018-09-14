@@ -1,6 +1,6 @@
 ﻿using MaxovCQRS.Common.Primitives;
 
-namespace MaxovCQRS.Sample.Command
+namespace MaxovCQRS.Sample.Commands
 {
     public class CreateUserCommand : ICommand
     {
@@ -18,7 +18,7 @@ namespace MaxovCQRS.Sample.Command
 
         public CreateUserCommand(string login, string firstName, string middleName, string lastName, string password)
         {
-            /*validation*/
+            /* validation */
 
             Login = login;
             FirstName = firstName;

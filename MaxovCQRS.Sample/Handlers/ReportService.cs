@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MaxovCQRS.Common;
 using MaxovCQRS.Common.Handlers;
-using MaxovCQRS.Sample.Command;
+using MaxovCQRS.Sample.Commands;
 
 namespace MaxovCQRS.Sample.Handlers
 {
